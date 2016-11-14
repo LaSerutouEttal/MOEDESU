@@ -1,0 +1,94 @@
+;WORKS
+(deftemplate genre-interest
+	(slot genre)
+(multislot shows))
+
+
+;WORKS
+(deftemplate anime-show
+	(multislot name)
+	(multislot description)
+	(multislot genres))
+
+;;;;;;;;;;;;;;;;;;;;;
+(deffunction count-facts (?template)
+ (bind ?count 0)
+ (do-for-all-facts ((?fct ?template)) TRUE
+ (bind ?count (+ ?count 1))) ?count)
+	
+;;;;;;;;;;;;;;;;;;;;;
+(deffunction anime-show-exists (?showname)
+ (bind ?count 1)
+	(do-for-all-facts ((?fct anime-show)) ;TRUE
+	(if (eq (fact-relation ?fct) anime-show)
+	then
+	(if (eq(fact-slot-value ?count name) ?showname)
+	then
+	TRUE
+	else
+	FALSE
+	))
+))
+
+
+	
+(defrule genre-query "Queries user as to what genres they are interested in."
+(declare (salience 0))
+=>
+(printout t "Are you interested in Romance series? (y/n)")
+(bind ?response(read))
+(if (eq ?response y)
+then 
+(assert (genre-interest(genre Romance)(shows "Nodame Cantabile" "Gekkan Shoujo Nozaki-kun"))))
+
+(printout t "Are you interested in Comedy series? (y/n)")
+(bind ?response2(read))
+(if (eq ?response2 y)
+then 
+(assert (genre-interest(genre Comedy)(shows "Nodame Cantabile" "Gekkan Shoujo Nozaki-kun"))))
+
+(printout t "Are you interested in Music series? (y/n)")
+(bind ?response3(read))
+(if (eq ?response3 y)
+then 
+(assert (genre-interest(genre Music)(shows "Nodame Cantabile")))))	
+	
+;;;;;;;;;;;;;;;;;;;;;
+(defrule display-recommendations "Displays shows recommended to the user"
+(declare (salience 1))
+(anime-show (name ?showname)(genres ?genre1 ?genre2 ?genre3))
+=>
+(if (neq ?genre3 ?genre2 ?genre1)
+then
+(printout t "Top show recommendation: " ?showname ". genres: " ?genre1 ", " ?genre2 ", " ?genre3 crlf)
+else
+(printout t "Secondary show recommendation: " ?showname ". genres: " ?genre1 ", " ?genre2 ", " ?genre3 crlf)))
+ 
+
+;;;;;;;;;;;;;;;;;;;;;
+(defrule assert-top-recommendations "asserts shows recommended to the user." 
+(genre-interest(genre ?genre1)(shows $? ?shows1 $?))
+(genre-interest(genre ?genre2)(shows $? ?shows2 $?))
+(genre-interest(genre ?genre3)(shows $? ?shows3 $?))
+=>
+(if(neq ?genre1 ?genre2)
+then
+	(if(neq ?genre1 ?genre3)
+	then
+		(if(neq ?genre3 ?genre2)
+		then
+			(if(eq ?shows1 ?shows2 ?shows3)
+			then
+			(assert (anime-show (name ?shows1) (genres ?genre1 ?genre2 ?genre3))))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;
+;(defrule assert-secondary-recommendations "asserts shows that only share two genres"
+;(genre-interest(genre ?genre1)(shows $? ?shows1 $?))
+;(genre-interest(genre ?genre2)(shows $? ?shows2 $?))
+;=>
+;(if(neq ?genre1 ?genre2)
+;then
+;(if(eq ?shows1 ?shows2)
+;then
+;(assert (anime-show (name ?shows1) (genres ?genre1 ?genre2 " "))))))
