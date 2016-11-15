@@ -30,7 +30,26 @@
 	))
 ))
 
-
+;;;;;;;;;;;;;;;;;;;;;
+(deffunction mod-anime-show-exists (?showname)
+(bind ?count 1)
+	(do-for-all-facts ((?fct anime-show)) ;fact set template
+	(eq (fact-relation ?count) anime-show) ;fact set query
+		(if (eq(fact-slot-value ?count name) ?showname)
+		then
+			;(printout t "True, count equals " ?count crlf)
+			TRUE
+		else
+			(bind ?count (+ ?count 1))
+			;(printout t "False, count equals " ?count crlf)
+			
+		)
+		(printout t "False, count equals " ?count crlf)
+		FALSE
+		
+	)
+	
+)
 	
 (defrule genre-query "Queries user as to what genres they are interested in."
 (declare (salience 0))
