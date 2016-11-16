@@ -9,6 +9,10 @@
 	(multislot name)
 	(multislot description)
 	(multislot genres))
+	
+(deftemplate printed
+	(slot name (type STRING))
+)
 
 ;;;;;;;;;;;;;;;;;;;;;
 (deffunction count-facts (?template)
@@ -34,19 +38,12 @@
 (deffunction mod-anime-show-exists (?showname)
 (bind ?count 1)
 	(do-for-all-facts ((?fct anime-show)) ;fact set template
-	(eq (fact-relation ?count) anime-show) ;fact set query
-		(if (eq(fact-slot-value ?count name) ?showname)
-		then
-			;(printout t "True, count equals " ?count crlf)
-			TRUE
-		else
-			(bind ?count (+ ?count 1))
-			;(printout t "False, count equals " ?count crlf)
-			
-		)
-		(printout t "False, count equals " ?count crlf)
-		FALSE
+	(and(eq (fact-relation ?count) anime-show) (eq(fact-slot-value ?count name) ?showname)) ;fact set query
+		TRUE
+		(bind ?count(+ ?count 1))	
+	)
 		
+	;FALSE
 	)
 	
 )
@@ -77,11 +74,12 @@ then
 (declare (salience 1))
 (anime-show (name ?showname)(genres ?genre1 ?genre2 ?genre3))
 =>
-(if (neq ?genre3 ?genre2 ?genre1)
-then
-(printout t "Top show recommendation: " ?showname ". genres: " ?genre1 ", " ?genre2 ", " ?genre3 crlf)
-else
-(printout t "Secondary show recommendation: " ?showname ". genres: " ?genre1 ", " ?genre2 ", " ?genre3 crlf)))
+	(if (neq ?genre3 ?genre2 ?genre1)
+	then
+		(printout t "Top show recommendation: " ?showname ". genres: " ?genre1 ", " ?genre2 ", " ?genre3 crlf)
+		(assert (printed (name ?showname)))
+	else
+		(printout t "Secondary show recommendation: " ?showname ". genres: " ?genre1 ", " ?genre2 ", " ?genre3 crlf)))
  
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -89,6 +87,7 @@ else
 (genre-interest(genre ?genre1)(shows $? ?shows1 $?))
 (genre-interest(genre ?genre2)(shows $? ?shows2 $?))
 (genre-interest(genre ?genre3)(shows $? ?shows3 $?))
+
 =>
 (if(neq ?genre1 ?genre2)
 then
