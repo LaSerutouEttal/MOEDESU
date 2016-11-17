@@ -37,37 +37,51 @@
 ;;;;;;;;;;;;;;;;;;;;;
 (deffunction mod-anime-show-exists (?showname)
 (bind ?count 1)
-	(do-for-all-facts ((?fct anime-show)) ;fact set template
+	(do-for-all-facts ((?fct anime-show)) TRUE ;fact set template
 	(and(eq (fact-relation ?count) anime-show) (eq(fact-slot-value ?count name) ?showname)) ;fact set query
 		TRUE
-		(bind ?count(+ ?count 1))	
+		(bind ?count(+ ?count 1))
+		;(printout t ?showname " exists." crlf)
+		TRUE
 	)
-		
+	;(printout t "show does not exist." crlf)
 	;FALSE
+	)	
+
+
+(deffunction anime-show-printed (?showname)
+(bind ?count 1)
+	(do-for-all-facts ((?fct printed)) FALSE 
+	(bind ?count (+ ?count 1))
+	(eq (fact-relation ?count) printed)
+		TRUE
+		?count
 	)
-	
 )
 	
 (defrule genre-query "Queries user as to what genres they are interested in."
 (declare (salience 0))
 =>
-(printout t "Are you interested in Romance series? (y/n)")
-(bind ?response(read))
-(if (eq ?response y)
-then 
-(assert (genre-interest(genre Romance)(shows "Nodame Cantabile" "Gekkan Shoujo Nozaki-kun"))))
+	(printout t "Are you interested in Romance series? (y/n)")
+	(bind ?response(read))
+	(if (eq ?response y)
+	then 
+		(assert (genre-interest(genre Romance)(shows "Nodame Cantabile" "Gekkan Shoujo Nozaki-kun"))))
 
-(printout t "Are you interested in Comedy series? (y/n)")
-(bind ?response2(read))
-(if (eq ?response2 y)
-then 
-(assert (genre-interest(genre Comedy)(shows "Nodame Cantabile" "Gekkan Shoujo Nozaki-kun"))))
+	(printout t "Are you interested in Comedy series? (y/n)")
+	(bind ?response2(read))
+	(if (eq ?response2 y)
+	then 
+		(assert (genre-interest(genre Comedy)(shows "Nodame Cantabile" "Gekkan Shoujo Nozaki-kun"))))
 
-(printout t "Are you interested in Music series? (y/n)")
-(bind ?response3(read))
-(if (eq ?response3 y)
-then 
-(assert (genre-interest(genre Music)(shows "Nodame Cantabile")))))	
+	(printout t "Are you interested in Music series? (y/n)")
+	(bind ?response3(read))
+	(if (eq ?response3 y)
+	then 
+		(assert (genre-interest(genre Music)(shows "Nodame Cantabile")))
+	)
+		
+)	
 	
 ;;;;;;;;;;;;;;;;;;;;;
 (defrule display-recommendations "Displays shows recommended to the user"
@@ -76,10 +90,12 @@ then
 =>
 	(if (neq ?genre3 ?genre2 ?genre1)
 	then
-		(printout t "Top show recommendation: " ?showname ". genres: " ?genre1 ", " ?genre2 ", " ?genre3 crlf)
-		(assert (printed (name ?showname)))
-	else
-		(printout t "Secondary show recommendation: " ?showname ". genres: " ?genre1 ", " ?genre2 ", " ?genre3 crlf)))
+		
+			(printout t "Top show recommendation: " ?showname ". genres: " ?genre1 ", " ?genre2 ", " ?genre3 crlf)
+			(assert (printed (name ?showname)))
+		)
+	)
+
  
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -97,7 +113,9 @@ then
 		then
 			(if(eq ?shows1 ?shows2 ?shows3)
 			then
-			(assert (anime-show (name ?shows1) (genres ?genre1 ?genre2 ?genre3))))))))
+				(if(not(mod-anime-show-exists ?shows1))
+				then
+				(assert (anime-show (name ?shows1) (genres ?genre1 ?genre2 ?genre3)))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;
